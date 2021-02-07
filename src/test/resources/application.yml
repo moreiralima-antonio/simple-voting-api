@@ -1,0 +1,14 @@
+---
+spring:
+  mvc:
+    locale: pt  # default language
+  jackson:
+    time-zone: America/Sao_Paulo
+
+logging:
+  config: classpath:log4j2-spring.xml
+  level:
+    br:
+      com:
+        antoniolima:
+          simplevotingapi: INFO

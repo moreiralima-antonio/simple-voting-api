@@ -1,0 +1,169 @@
+openapi: 3.0.0
+
+info:
+  title: Simple Voting API
+  version: 1.0.0
+  description: 'API designed for manage voting sessions and get the results for each opened topic at the end of a session.'
+tags:
+  - name: Voting API
+paths:
+  /api/{version}/proposals:
+    post:
+      description: ''
+      tags:
+        - Voting API
+      parameters:
+        - in: path
+          name: version
+          schema:
+            type: string
+            example: v1.0.0
+          required: true
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/proposalsRequest'
+        required: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/proposalsResponse'
+  /api/{version}/proposals/{proposalId}/sessions:
+    post:
+      description: ''
+      tags:
+        - Voting API
+      parameters:
+        - in: path
+          name: version
+          schema:
+            type: string
+            example: v1.0.0
+          required: true
+        - in: path
+          name: proposalId
+          schema:
+            type: string
+            example: v1.0.0
+          required: true
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sessionsRequest'
+        required: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sessionsResponse'
+  /api/{version}/sessions/{sessionId}/votes:
+    post:
+      description: ''
+      tags:
+        - Voting API
+      parameters:
+        - in: path
+          name: version
+          schema:
+            type: string
+            example: v1.0.0
+          required: true
+        - in: path
+          name: sessionId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/votesRequest'
+        required: true
+      responses:
+        '200':
+          description: Success
+  /api/{version}/sessions/{sessionId}/results:
+    get:
+      description: ''
+      tags:
+        - Voting API
+      parameters:
+        - in: path
+          name: version
+          schema:
+            type: string
+            example: v1.0.0
+          required: true
+        - in: path
+          name: sessionId
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/resultsResponse'
+components:
+  schemas:
+    proposalsRequest:
+      properties:
+        description:
+          type: string
+      required:
+        - description
+      type: object
+    proposalsResponse:
+      properties:
+        id:
+          type: string
+      required:
+        - id
+    sessionsRequest:
+      properties:
+        timeout:
+          type: integer
+      type: object
+    sessionsResponse:
+      properties:
+        id:
+          type: string
+      required:
+        - id
+    votesRequest:
+      properties:
+        memberId:
+          type: string
+        vote:
+          enum:
+            - Sim
+            - Não
+          type: string
+      required:
+        - memberId
+        - vote
+      type: object
+    resultsResponse:
+      properties:
+        votes:
+          properties:
+            yes:
+              type: integer
+            no:
+              type: integer
+          type: object
+      required:
+        - votes
+      type: object
