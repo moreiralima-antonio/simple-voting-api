@@ -10,7 +10,7 @@ public class Session implements Serializable {
 
     private static final long serialVersionUID = -2420395252951715021L;
 
-    private Integer timeout;
+    private long timeout;
     private Date startDate;
     private Date endDate;
 }

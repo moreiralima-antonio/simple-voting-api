@@ -115,7 +115,7 @@ components:
     votesRequest:
       properties:
         memberId:
-          type: integer
+          type: string
         choice:
           enum:
             - yes

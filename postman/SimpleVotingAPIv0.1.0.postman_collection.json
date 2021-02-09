@@ -90,7 +90,7 @@
 			"response": []
 		},
 		{
-			"name": "Create session",
+			"name": "Create session with timeout",
 			"event": [
 				{
 					"listen": "test",
@@ -118,6 +118,44 @@
 					"mode": "raw",
 					"raw": "{\r\n    \"timeout\":\"60\"\r\n}"
 				},
+				"url": {
+					"raw": "{{PROPOSALS_URL}}/{{proposal_id}}/sessions",
+					"host": [
+						"{{PROPOSALS_URL}}"
+					],
+					"path": [
+						"{{proposal_id}}",
+						"sessions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create session without timeout",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
 				"url": {
 					"raw": "{{PROPOSALS_URL}}/{{proposal_id}}/sessions",
 					"host": [
@@ -178,6 +216,10 @@
 							"pm.test(\"Status code is 200\", function () {\r",
 							"    pm.response.to.have.status(200);\r",
 							"});\r",
+							"\r",
+							"pm.test(\"Response time is less than 100ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(100);\r",
+							"});\r",
 							""
 						],
 						"type": "text/javascript"
@@ -209,7 +251,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"memberId\":{{member_id}},\r\n    \"choice\": \"{{member_choice}}\"\r\n}\r\n"
+					"raw": "{\r\n    \"memberId\": \"{{member_id}}\",\r\n    \"choice\": \"{{member_choice}}\"\r\n}\r\n"
 				},
 				"url": {
 					"raw": "{{PROPOSALS_URL}}/{{proposal_id}}/votes",

@@ -59,7 +59,14 @@ public class ProposalController {
     }
 
     @PostMapping("/{id}/sessions")
-    public Proposal newSession(@PathVariable String id, @RequestBody Session newSession) {
+    public Proposal newSession(@PathVariable String id, @RequestBody (required = false) Session newSession) {
+        /**
+         * Body é opcional na criação de uma sessão.
+         */
+        if(Objects.isNull(newSession)){
+            newSession = new Session();
+        }
+
         log.info("Received a new session request with data: {} ", newSession);
 
         Optional<Proposal> proposal = proposalRep.findById(id);
@@ -85,6 +92,13 @@ public class ProposalController {
          * Marca o início de uma nova sessão.
          */
         newSession.setStartDate(new Date());
+
+        /**
+         * Timeout default de 60 segundos.
+         */
+        if(newSession.getTimeout() <= 0){
+            newSession.setTimeout(60);
+        }
 
         updatedProposal.setSession(newSession);
 
@@ -123,7 +137,7 @@ public class ProposalController {
             Date updatedDate = new Date();
 
             /**
-             * Valida sa a sessão expirou.
+             * Valida se a sessão expirou.
              */
             if (updatedDate.getTime() - session.getStartDate().getTime() >= (session.getTimeout()*1000)) {
                 session.setEndDate(updatedDate);

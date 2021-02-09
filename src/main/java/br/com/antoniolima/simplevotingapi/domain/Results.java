@@ -9,6 +9,6 @@ public class Results implements Serializable {
 
     private static final long serialVersionUID = -3166692173217291130L;
 
-    private Long yes;
-    private Long no;
+    private long yes;
+    private long no;
 }

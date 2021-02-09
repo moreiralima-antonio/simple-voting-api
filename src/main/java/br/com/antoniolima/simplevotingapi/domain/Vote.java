@@ -25,6 +25,6 @@ public class Vote implements Serializable {
     @EqualsAndHashCode.Exclude
     private Date voteDate;
 
-    private Integer memberId;
+    private String memberId;
     private String proposalId;
 }
