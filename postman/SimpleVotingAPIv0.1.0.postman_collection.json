@@ -1,0 +1,364 @@
+{
+	"info": {
+		"_postman_id": "1ae7328c-99ea-47d8-bf33-7c8d4a4e0dbb",
+		"name": "SimpleVotingAPI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create proposal",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.collectionVariables.set(\"proposal_id\", pm.response.json().id);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var proposal_description = pm.variables.replaceIn('{{$randomCatchPhrase}}')\r",
+							"pm.collectionVariables.set(\"proposal_description\", proposal_description);\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"description\": \"{{proposal_description}}\"\r\n}"
+				},
+				"url": {
+					"raw": "{{PROPOSALS_URL}}",
+					"host": [
+						"{{PROPOSALS_URL}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get proposals",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{PROPOSALS_URL}}",
+					"host": [
+						"{{PROPOSALS_URL}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create session",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"timeout\":\"60\"\r\n}"
+				},
+				"url": {
+					"raw": "{{PROPOSALS_URL}}/{{proposal_id}}/sessions",
+					"host": [
+						"{{PROPOSALS_URL}}"
+					],
+					"path": [
+						"{{proposal_id}}",
+						"sessions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find proposal by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{PROPOSALS_URL}}/{{proposal_id}}",
+					"host": [
+						"{{PROPOSALS_URL}}"
+					],
+					"path": [
+						"{{proposal_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create vote",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var member_id = pm.variables.replaceIn('{{$randomInt}}')\r",
+							"pm.collectionVariables.set(\"member_id\", member_id);\r",
+							"\r",
+							"var choice = pm.variables.replaceIn('{{$randomBoolean}}');\r",
+							"pm.collectionVariables.set(\"member_choice\", (choice == 'true') ? \"yes\":\"no\");\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"memberId\":{{member_id}},\r\n    \"choice\": \"{{member_choice}}\"\r\n}\r\n"
+				},
+				"url": {
+					"raw": "{{PROPOSALS_URL}}/{{proposal_id}}/votes",
+					"host": [
+						"{{PROPOSALS_URL}}"
+					],
+					"path": [
+						"{{proposal_id}}",
+						"votes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get votes",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{PROPOSALS_URL}}/{{proposal_id}}/votes",
+					"host": [
+						"{{PROPOSALS_URL}}"
+					],
+					"path": [
+						"{{proposal_id}}",
+						"votes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Results",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{PROPOSALS_URL}}/{{proposal_id}}/results",
+					"host": [
+						"{{PROPOSALS_URL}}"
+					],
+					"path": [
+						"{{proposal_id}}",
+						"results"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "API_VERSION",
+			"value": "v0.1.0"
+		},
+		{
+			"key": "API_URL",
+			"value": "http://localhost:8080/api/{{API_VERSION}}"
+		},
+		{
+			"key": "PROPOSALS_URL",
+			"value": "{{API_URL}}/proposals"
+		},
+		{
+			"key": "proposal_id",
+			"value": ""
+		},
+		{
+			"key": "member_id",
+			"value": ""
+		},
+		{
+			"key": "member_choice",
+			"value": ""
+		},
+		{
+			"key": "proposal_description",
+			"value": ""
+		}
+	]
+}

@@ -1,7 +1,9 @@
 ---
+server:
+  servlet:
+    context-path: /api/v@project.version@
+
 spring:
-  mvc:
-    locale: pt  # default language
   jackson:
     time-zone: America/Sao_Paulo
 

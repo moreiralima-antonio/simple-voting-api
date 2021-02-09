@@ -2,13 +2,13 @@
 <Configuration status="INFO" monitorInterval="30">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%5level] - [%C{1}] : (TID %tid) - %encode{%msg}{CRLF}%n"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%5level] - [%C{1}] (TID %tid) - %encode{%msg}{CRLF}%n"/>
         </Console>
         <RollingFile
             name="RollingFile"
-            fileName="/var/log/simple-voting-api.log"
-            filePattern="/var/log/simple-voting-api.log.%d{yyyy-MM-dd}-%i.log.gz">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%5level] - [%C{1}] : (TID %tid) - %encode{%msg}{CRLF}%n"/>
+            fileName="log/simple-voting-api.log"
+            filePattern="log/simple-voting-api.log.%d{yyyy-MM-dd}-%i.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%5level] - [%C{1}] (TID %tid) - %encode{%msg}{CRLF}%n"/>
             <Policies>
                 <OnStartupTriggeringPolicy />
                 <SizeBasedTriggeringPolicy size="100 MB" />

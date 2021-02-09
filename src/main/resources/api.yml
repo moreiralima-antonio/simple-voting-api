@@ -2,23 +2,18 @@ openapi: 3.0.0
 
 info:
   title: Simple Voting API
-  version: 1.0.0
-  description: 'API designed for manage voting sessions and get the results for each opened topic at the end of a session.'
+  version: 0.1.0
+  description: 'API designed for manage voting sessions and get the results for each Success proposal at the end of a session by timeout.'
+servers:
+  - url: http://localhost:8080/api/v0.1.0
 tags:
   - name: Voting API
 paths:
-  /api/{version}/proposals:
+  /proposals:
     post:
       description: ''
       tags:
         - Voting API
-      parameters:
-        - in: path
-          name: version
-          schema:
-            type: string
-            example: v1.0.0
-          required: true
       requestBody:
         description: ''
         content:
@@ -27,29 +22,23 @@ paths:
               $ref: '#/components/schemas/proposalsRequest'
         required: true
       responses:
-        '201':
-          description: Created
+        '200':
+          description: Success
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/proposalsResponse'
-  /api/{version}/proposals/{proposalId}/sessions:
+  /proposals/{id}/sessions:
     post:
       description: ''
       tags:
         - Voting API
       parameters:
         - in: path
-          name: version
+          name: id
           schema:
             type: string
-            example: v1.0.0
-          required: true
-        - in: path
-          name: proposalId
-          schema:
-            type: string
-            example: v1.0.0
+            format: uuid
           required: true
       requestBody:
         description: ''
@@ -59,28 +48,19 @@ paths:
               $ref: '#/components/schemas/sessionsRequest'
         required: true
       responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/sessionsResponse'
-  /api/{version}/sessions/{sessionId}/votes:
+        '200':
+          description: Success
+  /proposals/{id}/votes:
     post:
       description: ''
       tags:
         - Voting API
       parameters:
         - in: path
-          name: version
+          name: id
           schema:
             type: string
-            example: v1.0.0
-          required: true
-        - in: path
-          name: sessionId
-          schema:
-            type: string
+            format: uuid
           required: true
       requestBody:
         description: ''
@@ -92,22 +72,17 @@ paths:
       responses:
         '200':
           description: Success
-  /api/{version}/sessions/{sessionId}/results:
+  /proposals/{id}/results:
     get:
       description: ''
       tags:
         - Voting API
       parameters:
         - in: path
-          name: version
+          name: id
           schema:
             type: string
-            example: v1.0.0
-          required: true
-        - in: path
-          name: sessionId
-          schema:
-            type: string
+            format: uuid
           required: true
       responses:
         '200':
@@ -129,6 +104,7 @@ components:
       properties:
         id:
           type: string
+          format: uuid
       required:
         - id
     sessionsRequest:
@@ -136,34 +112,25 @@ components:
         timeout:
           type: integer
       type: object
-    sessionsResponse:
-      properties:
-        id:
-          type: string
-      required:
-        - id
     votesRequest:
       properties:
         memberId:
-          type: string
-        vote:
+          type: integer
+        choice:
           enum:
-            - Sim
-            - Não
+            - yes
+            - no
           type: string
       required:
         - memberId
-        - vote
+        - choice
       type: object
     resultsResponse:
       properties:
-        votes:
-          properties:
-            yes:
-              type: integer
-            no:
-              type: integer
-          type: object
+          yes:
+            type: integer
+          no:
+            type: integer
       required:
         - votes
       type: object
