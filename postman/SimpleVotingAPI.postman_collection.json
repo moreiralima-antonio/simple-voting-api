@@ -376,7 +376,7 @@
 	"variable": [
 		{
 			"key": "API_VERSION",
-			"value": "v0.1.0"
+			"value": "v0.2.0"
 		},
 		{
 			"key": "API_URL",

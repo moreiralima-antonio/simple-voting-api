@@ -2,10 +2,10 @@ openapi: 3.0.0
 
 info:
   title: Simple Voting API
-  version: 0.1.0
+  version: 0.2.0
   description: 'API designed for manage voting sessions and get the results for each Success proposal at the end of a session by timeout.'
 servers:
-  - url: http://localhost:8080/api/v0.1.0
+  - url: http://localhost:8080/api/v0.2.0
 tags:
   - name: Voting API
 paths:
