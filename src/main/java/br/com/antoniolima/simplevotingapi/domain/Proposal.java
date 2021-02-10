@@ -17,4 +17,8 @@ public class Proposal implements Serializable {
     private String id;
     private String description;
     private Session session;
+
+    public Proposal(final String description) {
+        this.description = description;
+    }
 }

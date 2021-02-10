@@ -3,7 +3,7 @@ openapi: 3.0.0
 info:
   title: Simple Voting API
   version: 0.2.0
-  description: 'API designed for manage voting sessions and get the results for each Success proposal at the end of a session by timeout.'
+  description: 'API designed for manage voting sessions and generate the voting results for a proposal.'
 servers:
   - url: http://localhost:8080/api/v0.2.0
 tags:
@@ -11,7 +11,7 @@ tags:
 paths:
   /proposals:
     post:
-      description: ''
+      description: 'Create a new proposal'
       tags:
         - Voting API
       requestBody:
@@ -30,7 +30,7 @@ paths:
                 $ref: '#/components/schemas/proposalsResponse'
   /proposals/{id}/sessions:
     post:
-      description: ''
+      description: 'Open a session based on a proposal id'
       tags:
         - Voting API
       parameters:
@@ -52,7 +52,7 @@ paths:
           description: Success
   /proposals/{id}/votes:
     post:
-      description: ''
+      description: 'Register a new vote in a proposal'
       tags:
         - Voting API
       parameters:
@@ -74,7 +74,7 @@ paths:
           description: Success
   /proposals/{id}/results:
     get:
-      description: ''
+      description: 'Obtain the results of a voting session'
       tags:
         - Voting API
       parameters:
@@ -131,6 +131,4 @@ components:
             type: integer
           no:
             type: integer
-      required:
-        - votes
       type: object

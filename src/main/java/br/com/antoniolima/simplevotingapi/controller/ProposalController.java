@@ -3,21 +3,31 @@ package br.com.antoniolima.simplevotingapi.controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.antoniolima.simplevotingapi.domain.Proposal;
+import br.com.antoniolima.simplevotingapi.domain.ProposalRequest;
+import br.com.antoniolima.simplevotingapi.domain.ProposalResponse;
 import br.com.antoniolima.simplevotingapi.domain.Results;
 import br.com.antoniolima.simplevotingapi.domain.Session;
+import br.com.antoniolima.simplevotingapi.domain.SessionRequest;
 import br.com.antoniolima.simplevotingapi.domain.Vote;
+import br.com.antoniolima.simplevotingapi.domain.VoteRequest;
+import br.com.antoniolima.simplevotingapi.exception.CustomApiResponse;
 import br.com.antoniolima.simplevotingapi.repository.ProposalRepository;
 import br.com.antoniolima.simplevotingapi.repository.VoteRepository;
+import br.com.antoniolima.simplevotingapi.service.ProposalService;
+import br.com.antoniolima.simplevotingapi.service.SessionService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,139 +45,158 @@ public class ProposalController {
     @Autowired
     private VoteRepository voteRep;
 
+    @Autowired
+    private SessionService sessionService;
+
+    @Autowired
+    private ProposalService proposalService;
+
+    /**
+     * Responsável por criar e persistir informações sobre uma pauta.
+     *
+     * @param id identificador da pauta
+     * @param request dados de entrada contendo a descrição da pauta.
+     *
+     * @return
+     *   Retorna um identificador único da pauta criada.
+     */
     @PostMapping
-    public Proposal newProposal(@RequestBody Proposal newProposal) {
-        log.info("Received a new proposal request with data: {} ", newProposal);
-        return proposalRep.save(newProposal);
+    public ProposalResponse newProposal(@Valid @RequestBody ProposalRequest request) {
+        log.info("Received a new proposal request with data: {}", request);
+
+        Proposal newProposal = new Proposal(request.getDescription());
+        Proposal savedProposal = proposalRep.save(newProposal);
+
+        log.info("Proposal created with id: {}", savedProposal.getId());
+
+        return new ProposalResponse(savedProposal.getId());
     }
 
-    @GetMapping
-    public List<Proposal> getAllProposals() {
-        return proposalRep.findAll();
-    }
-
-    @GetMapping("/{id}")
-    public Proposal findProposalById(@PathVariable String id) {
-        Optional<Proposal> proposal = proposalRep.findById(id);
-
-        if (!proposal.isPresent()) {
-            log.error("Proposal not found!");
-            return null;
-        }
-
-        return proposal.get();
-    }
-
+    /**
+     * Responsável por criar e persistir informações sobre uma sessão dentro de uma pauta previamente criada.
+     * Aqui também é realizado um controle para não permitir abertura de mais de uma sessão em uma mesma pauta.
+     *
+     * @param id identificador da pauta
+     * @param request dados de entrada contendo o tempo de expiração (segundos) da sessão de votação (opcional).
+     */
     @PostMapping("/{id}/sessions")
-    public Proposal newSession(@PathVariable String id, @RequestBody (required = false) Session newSession) {
-        /**
-         * Body é opcional na criação de uma sessão.
-         */
-        if(Objects.isNull(newSession)){
-            newSession = new Session();
+    public ResponseEntity<CustomApiResponse> newSession(@PathVariable String id, @Valid @RequestBody (required = false) SessionRequest request) {
+        log.info("Received a new session request for proposal: {}", id);
+
+        Proposal proposal = proposalService.findProposalById(id);
+
+        if (sessionService.sessionExists(proposal)) {
+            return ResponseEntity.badRequest().body(new CustomApiResponse(
+                HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Session cannot be created because it already exists."
+            ));
         }
 
-        log.info("Received a new session request with data: {} ", newSession);
-
-        Optional<Proposal> proposal = proposalRep.findById(id);
-
-        if (!proposal.isPresent()) {
-            log.error("Proposal not found!");
-            return null;
-        }
-
-        Proposal updatedProposal = proposal.get();
-
-        Session session = updatedProposal.getSession();
+        Session newSession = new Session();
 
         /**
-         * Valida se já existe uma sessão aberta.
+         * Redefine o tempo de expiração da sessão caso receba o parâmetro na requisição
          */
-        if (Objects.nonNull(session) && Objects.nonNull(session.getStartDate())) {
-            log.info("Skipping... session already created: {} ", session);
-            return null;
+        if (Objects.nonNull(request) && request.getTimeout() > 0) {
+            newSession.setTimeout(request.getTimeout());
         }
 
-        /**
-         * Marca o início de uma nova sessão.
-         */
-        newSession.setStartDate(new Date());
+        log.info("Session will expires in: {} seconds", newSession.getTimeout());
 
-        /**
-         * Timeout default de 60 segundos.
-         */
-        if(newSession.getTimeout() <= 0){
-            newSession.setTimeout(60);
-        }
+        proposal.setSession(newSession);
 
-        updatedProposal.setSession(newSession);
+        proposalRep.save(proposal);
 
-        return proposalRep.save(updatedProposal);
+        log.info("Session created successfully for proposal: {}", id);
+
+        return ResponseEntity.ok().build();
     }
 
+    /**
+     * Responsável por criar e persistir informações de votos (yes|no) de uma pauta.
+     * Aqui também existe um controle para não permitir votos em uma sessão inválida.
+     *
+     * @param id identificador da pauta
+     * @param request dados de entrada de identificação do votante e sua escolha.
+     *
+     */
     @PostMapping("/{id}/votes")
-    public Vote newVote(@PathVariable String id, @RequestBody Vote newVote) {
+    public ResponseEntity<CustomApiResponse> newVote(@PathVariable String id, @Valid @RequestBody VoteRequest request) {
+        log.info("Received a new vote request ({}) for proposal: {}", request, id);
+
+        Proposal proposal = proposalService.findProposalById(id);
+
+        if (!sessionService.sessionExists(proposal)) {
+            return ResponseEntity.badRequest().body(new CustomApiResponse(
+                HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Voting session is not open yet."
+            ));
+        }
+
+        if (sessionService.sessionClosed(proposal)) {
+            return ResponseEntity.badRequest().body(new CustomApiResponse(
+                HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Voting session is closed."
+            ));
+        }
+
+        if (sessionService.sessionExpired(proposal)) {
+            Session session = proposal.getSession();
+            session.setEndDate(new Date());
+            proposal.setSession(session);
+            proposalRep.save(proposal);
+
+            return ResponseEntity.badRequest().body(new CustomApiResponse(
+                HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Voting session has expired."
+            ));
+        }
+
+        Vote newVote = new Vote();
+
         newVote.setProposalId(id);
         newVote.setVoteDate(new Date());
+        newVote.setChoice(request.getChoice());
+        newVote.setMemberId(request.getMemberId());
 
-        log.info("Received a new vote request with data: {}", newVote);
+        voteRep.save(newVote);
 
-        Optional<Proposal> proposal = proposalRep.findById(id);
+        log.info("Vote registered successfully: {}", newVote);
 
-        if (!proposal.isPresent()) {
-            log.error("Proposal not found!");
-            return null;
-        }
-
-        Proposal updatedProposal = proposal.get();
-        Session session = updatedProposal.getSession();
-
-        /**
-         * Valida se existe uma sessão aberta.
-         */
-        if (Objects.nonNull(session) && Objects.nonNull(session.getStartDate())) {
-            /**
-             * Valida sa a sessão terminou, não permitindo novos votos.
-             */
-            if( Objects.nonNull(session.getEndDate())) {
-                log.info("Session already ended: {}", session);
-                return null;
-            }
-
-            Date updatedDate = new Date();
-
-            /**
-             * Valida se a sessão expirou.
-             */
-            if (updatedDate.getTime() - session.getStartDate().getTime() >= (session.getTimeout()*1000)) {
-                session.setEndDate(updatedDate);
-                updatedProposal.setSession(session);
-                proposalRep.save(updatedProposal);
-
-                log.info("Session has expired: {}", session);
-
-                return null;
-            }
-
-            return voteRep.save(newVote);
-        }
-
-        return null;
+        return ResponseEntity.ok().build();
     }
 
+    /**
+     * Responsável por buscar todos os votos efetuados de uma pauta específica.
+     *
+     * @param id identificador da pauta
+     *
+     * @return
+     *   Retorna uma lista com todos os votos.
+     */
     @GetMapping("/{id}/votes")
     public List<Vote> getAllVotes(@PathVariable String id) {
+        log.info("Getting all votes for proposal: {}", id);
+
         return voteRep.findAll().stream()
             .filter(v -> v.getProposalId().equals(id))
             .collect(Collectors.toList());
     }
 
+    /**
+     * Responsável por buscar todos os votos efetuados de uma pauta específica e calcular o total de votos.
+     *
+     * @param id identificador da pauta
+     *
+     * @return
+     *   Retorna uma lista com todos os votos.
+     */
     @GetMapping("/{id}/results")
     public Results getResults(@PathVariable String id) {
         log.info("Received a new results request for proposal: {}", id);
 
         /**
-         * Contabiliza todos os votos de uma pauta (somente um voto por membro).
+         * Contabiliza todos os votos de uma pauta (somente o primeiro voto de um membro).
         */
         List<Vote> votes = voteRep.findAll();
 
@@ -196,6 +225,8 @@ public class ProposalController {
 
         log.debug("Original vote list: {}", votes);
         log.debug("Unique vote list: {}", uniqueVotes);
+
+        log.info("Voting session results (proposal {}) obtained: {}", id, results);
 
         return results;
     }
