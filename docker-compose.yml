@@ -1,0 +1,21 @@
+version: "2.4"
+
+services:
+  voting-api:
+    build: .
+    image: voting-api:0.2.0
+    container_name: voting-api
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/voting-api
+    volumes:
+      - ./log:/log
+    mem_limit: 256M
+    ports:
+      - 8080:8080
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    mem_limit: 256M
