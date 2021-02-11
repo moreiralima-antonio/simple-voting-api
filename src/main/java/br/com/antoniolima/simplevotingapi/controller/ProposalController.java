@@ -2,6 +2,7 @@ package br.com.antoniolima.simplevotingapi.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.antoniolima.simplevotingapi.application.CustomApiResponse;
 import br.com.antoniolima.simplevotingapi.domain.Proposal;
 import br.com.antoniolima.simplevotingapi.domain.ProposalRequest;
 import br.com.antoniolima.simplevotingapi.domain.ProposalResponse;
@@ -10,18 +11,14 @@ import br.com.antoniolima.simplevotingapi.domain.Session;
 import br.com.antoniolima.simplevotingapi.domain.SessionRequest;
 import br.com.antoniolima.simplevotingapi.domain.Vote;
 import br.com.antoniolima.simplevotingapi.domain.VoteRequest;
-import br.com.antoniolima.simplevotingapi.exception.CustomApiResponse;
-import br.com.antoniolima.simplevotingapi.repository.ProposalRepository;
-import br.com.antoniolima.simplevotingapi.repository.VoteRepository;
 import br.com.antoniolima.simplevotingapi.service.ProposalService;
 import br.com.antoniolima.simplevotingapi.service.SessionService;
+import br.com.antoniolima.simplevotingapi.service.VoteService;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
@@ -40,10 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class ProposalController {
 
     @Autowired
-    private ProposalRepository proposalRep;
-
-    @Autowired
-    private VoteRepository voteRep;
+    private VoteService voteService;
 
     @Autowired
     private SessionService sessionService;
@@ -54,7 +48,6 @@ public class ProposalController {
     /**
      * Responsável por criar e persistir informações sobre uma pauta.
      *
-     * @param id identificador da pauta
      * @param request dados de entrada contendo a descrição da pauta.
      *
      * @return
@@ -65,7 +58,7 @@ public class ProposalController {
         log.info("Received a new proposal request with data: {}", request);
 
         Proposal newProposal = new Proposal(request.getDescription());
-        Proposal savedProposal = proposalRep.save(newProposal);
+        Proposal savedProposal = proposalService.save(newProposal);
 
         log.info("Proposal created with id: {}", savedProposal.getId());
 
@@ -78,6 +71,9 @@ public class ProposalController {
      *
      * @param id identificador da pauta
      * @param request dados de entrada contendo o tempo de expiração (segundos) da sessão de votação (opcional).
+     *
+     * @return
+     *   Retorno padrão HTTP com base no objeto CustomApiResponse.
      */
     @PostMapping("/{id}/sessions")
     public ResponseEntity<CustomApiResponse> newSession(@PathVariable String id, @Valid @RequestBody (required = false) SessionRequest request) {
@@ -94,9 +90,7 @@ public class ProposalController {
 
         Session newSession = new Session();
 
-        /**
-         * Redefine o tempo de expiração da sessão caso receba o parâmetro na requisição
-         */
+        /* Redefine o tempo de expiração da sessão caso receba o parâmetro na requisição */
         if (Objects.nonNull(request) && request.getTimeout() > 0) {
             newSession.setTimeout(request.getTimeout());
         }
@@ -105,7 +99,7 @@ public class ProposalController {
 
         proposal.setSession(newSession);
 
-        proposalRep.save(proposal);
+        proposalService.save(proposal);
 
         log.info("Session created successfully for proposal: {}", id);
 
@@ -119,6 +113,8 @@ public class ProposalController {
      * @param id identificador da pauta
      * @param request dados de entrada de identificação do votante e sua escolha.
      *
+     * @return
+     *   Retorno padrão HTTP com base no objeto CustomApiResponse.
      */
     @PostMapping("/{id}/votes")
     public ResponseEntity<CustomApiResponse> newVote(@PathVariable String id, @Valid @RequestBody VoteRequest request) {
@@ -144,7 +140,7 @@ public class ProposalController {
             Session session = proposal.getSession();
             session.setEndDate(new Date());
             proposal.setSession(session);
-            proposalRep.save(proposal);
+            proposalService.save(proposal);
 
             return ResponseEntity.badRequest().body(new CustomApiResponse(
                 HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.getReasonPhrase(),
@@ -159,7 +155,7 @@ public class ProposalController {
         newVote.setChoice(request.getChoice());
         newVote.setMemberId(request.getMemberId());
 
-        voteRep.save(newVote);
+        voteService.save(newVote);
 
         log.info("Vote registered successfully: {}", newVote);
 
@@ -177,57 +173,21 @@ public class ProposalController {
     @GetMapping("/{id}/votes")
     public List<Vote> getAllVotes(@PathVariable String id) {
         log.info("Getting all votes for proposal: {}", id);
-
-        return voteRep.findAll().stream()
-            .filter(v -> v.getProposalId().equals(id))
-            .collect(Collectors.toList());
+        return voteService.findByProposalId(id);
     }
 
     /**
      * Responsável por buscar todos os votos efetuados de uma pauta específica e calcular o total de votos.
+     * Contabilização considera somente o primeiro voto de um membro, evitando duplicações.
      *
      * @param id identificador da pauta
      *
      * @return
-     *   Retorna uma lista com todos os votos.
+     *   Retorna o resultado da votação na pauta.
      */
     @GetMapping("/{id}/results")
     public Results getResults(@PathVariable String id) {
         log.info("Received a new results request for proposal: {}", id);
-
-        /**
-         * Contabiliza todos os votos de uma pauta (somente o primeiro voto de um membro).
-        */
-        List<Vote> votes = voteRep.findAll();
-
-        Comparator<Vote> compareByDate = Comparator
-            .comparing(Vote::getVoteDate);
-
-        List<Vote> uniqueVotes = votes.stream()
-            .filter(v -> v.getProposalId().equals(id))
-            .sorted(compareByDate)
-            .distinct()
-            .collect(Collectors.toList());
-
-        Results results = new Results();
-
-        long yes = uniqueVotes.stream()
-            .filter(v -> v.getChoice().equalsIgnoreCase("yes"))
-            .count();
-
-        results.setYes(yes);
-
-        long no = uniqueVotes.stream()
-            .filter(v -> v.getChoice().equalsIgnoreCase("no"))
-            .count();
-
-        results.setNo(no);
-
-        log.debug("Original vote list: {}", votes);
-        log.debug("Unique vote list: {}", uniqueVotes);
-
-        log.info("Voting session results (proposal {}) obtained: {}", id, results);
-
-        return results;
+        return voteService.computeVotes(id);
     }
 }

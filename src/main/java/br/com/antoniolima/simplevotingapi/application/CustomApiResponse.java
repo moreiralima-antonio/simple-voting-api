@@ -1,4 +1,4 @@
-package br.com.antoniolima.simplevotingapi.exception;
+package br.com.antoniolima.simplevotingapi.application;
 
 import java.util.Date;
 

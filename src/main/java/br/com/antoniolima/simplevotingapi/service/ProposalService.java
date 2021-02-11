@@ -34,4 +34,8 @@ public class ProposalService {
 
         return proposal.get();
     }
+
+    public Proposal save(final Proposal newProposal) {
+        return proposalRep.save(newProposal);
+    }
 }

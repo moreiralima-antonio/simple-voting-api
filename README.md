@@ -10,7 +10,7 @@ The core application features are:
 - REST API documented with Open API 3.0 (resources/api.yml)
 - Data persistence with Spring Data MongoDB (MongoDB as an external service)
 - Logging with SLF4J (Log4j2)
-- Testing with Postman (postman/SimpleVotingAPIv0.1.0.postman_collection.json)
+- Testing with Postman (postman/SimpleVotingAPI.postman_collection.json)
 
 Current version is v0.2.0 and the API is exposed on: http://localhost:8080/api/v0.2.0.
 
@@ -46,7 +46,7 @@ docker-compose up -d
 
 ### Postman
 
-Open Postman GUI and import **SimpleVotingAPIv0.1.0.postman_collection.json** collection into your workspace.
+Open Postman GUI and import **SimpleVotingAPI.postman_collection.json** collection into your workspace.
 
 ### Command line
 
