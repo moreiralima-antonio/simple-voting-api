@@ -3,7 +3,7 @@ package br.com.antoniolima.simplevotingapi.domain;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 public class Session implements Serializable {
@@ -13,10 +13,10 @@ public class Session implements Serializable {
     private static final long DEFAULT_EXPIRATION_TIME = 60;
 
     private long timeout = DEFAULT_EXPIRATION_TIME;
-    private Date startDate;
-    private Date endDate;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
 
     public Session() {
-        this.startDate = new Date();
+        this.startDate = LocalDateTime.now();
     }
 }

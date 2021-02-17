@@ -16,7 +16,7 @@ import br.com.antoniolima.simplevotingapi.service.SessionService;
 import br.com.antoniolima.simplevotingapi.service.VoteService;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -138,7 +138,7 @@ public class ProposalController {
 
         if (sessionService.sessionExpired(proposal)) {
             Session session = proposal.getSession();
-            session.setEndDate(new Date());
+            session.setEndDate(LocalDateTime.now());
             proposal.setSession(session);
             proposalService.save(proposal);
 
@@ -151,7 +151,7 @@ public class ProposalController {
         Vote newVote = new Vote();
 
         newVote.setProposalId(id);
-        newVote.setVoteDate(new Date());
+        newVote.setVoteDate(LocalDateTime.now());
         newVote.setChoice(request.getChoice());
         newVote.setMemberId(request.getMemberId());
 

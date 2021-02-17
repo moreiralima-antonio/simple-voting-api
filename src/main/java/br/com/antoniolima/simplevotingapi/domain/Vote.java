@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -23,7 +23,7 @@ public class Vote implements Serializable {
     private String choice;
 
     @EqualsAndHashCode.Exclude
-    private Date voteDate;
+    private LocalDateTime voteDate;
 
     private String memberId;
     private String proposalId;

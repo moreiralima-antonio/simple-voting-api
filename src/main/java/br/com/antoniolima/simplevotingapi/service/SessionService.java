@@ -7,7 +7,8 @@ import br.com.antoniolima.simplevotingapi.domain.Session;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 
@@ -41,9 +42,9 @@ public class SessionService {
     public boolean sessionExpired(final Proposal proposal) {
         Session session = proposal.getSession();
 
-        Date updatedDate = new Date();
+        LocalDateTime updatedDate = LocalDateTime.now();
 
-        if (updatedDate.getTime() - session.getStartDate().getTime() >= (session.getTimeout() * 1000)) {
+        if (Duration.between(session.getStartDate(), updatedDate).getSeconds() >= session.getTimeout()) {
             log.info("Session has expired: {}", session);
             return true;
         }

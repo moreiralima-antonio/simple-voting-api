@@ -2,9 +2,7 @@
 server:
   servlet:
     context-path: /api/v@project.version@
-spring:
-  jackson:
-    time-zone: America/Sao_Paulo
+
 logging:
   config: classpath:log4j2-spring.xml
   level:
