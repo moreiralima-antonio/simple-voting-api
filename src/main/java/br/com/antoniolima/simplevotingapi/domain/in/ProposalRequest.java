@@ -1,4 +1,4 @@
-package br.com.antoniolima.simplevotingapi.domain;
+package br.com.antoniolima.simplevotingapi.domain.in;
 
 import javax.validation.constraints.NotBlank;
 

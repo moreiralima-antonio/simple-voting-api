@@ -1,27 +1,38 @@
 package br.com.antoniolima.simplevotingapi.service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
+import br.com.antoniolima.simplevotingapi.domain.Proposal;
 import br.com.antoniolima.simplevotingapi.domain.Results;
+import br.com.antoniolima.simplevotingapi.domain.Session;
 import br.com.antoniolima.simplevotingapi.domain.Vote;
+import br.com.antoniolima.simplevotingapi.domain.in.VoteRequest;
+import br.com.antoniolima.simplevotingapi.exception.CustomApiException;
 import br.com.antoniolima.simplevotingapi.repository.VoteRepository;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 
 @Service
 @Slf4j
-@NoArgsConstructor
 public class VoteService {
 
-    @Autowired
-    private VoteRepository voteRep;
+    private final VoteRepository voteRep;
+    private final ProposalService proposalService;
+    private final SessionService sessionService;
+
+    public VoteService(final VoteRepository voteRep, final ProposalService proposalService,
+        final SessionService sessionService) {
+
+        this.voteRep = voteRep;
+        this.proposalService = proposalService;
+        this.sessionService = sessionService;
+    }
 
     public Vote save(final Vote newVote) {
         return voteRep.save(newVote);
@@ -29,6 +40,47 @@ public class VoteService {
 
     public List<Vote> findByProposalId(final String id) {
         return voteRep.findByProposalId(id);
+    }
+
+    public void newVote(final String proposalId, final VoteRequest request) throws CustomApiException {
+        Proposal proposal = proposalService.findProposalById(proposalId);
+
+        if (!sessionService.sessionExists(proposal)) {
+            throw new CustomApiException(
+                HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Voting session is not open yet."
+            );
+        }
+
+        if (sessionService.sessionClosed(proposal)) {
+            throw new CustomApiException(
+                HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Voting session is closed."
+            );
+        }
+
+        if (sessionService.sessionExpired(proposal)) {
+            Session session = proposal.getSession();
+            session.setEndDate(LocalDateTime.now());
+            proposal.setSession(session);
+            proposalService.save(proposal);
+
+            throw new CustomApiException(
+                HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Voting session has expired."
+            );
+        }
+
+        Vote newVote = Vote.builder()
+            .proposalId(proposalId)
+            .voteDate(LocalDateTime.now())
+            .choice(request.getChoice())
+            .memberId(request.getMemberId())
+            .build();
+
+        this.save(newVote);
+
+        log.info("Vote registered successfully: {}", newVote);
     }
 
     public Results computeVotes(final String id) {

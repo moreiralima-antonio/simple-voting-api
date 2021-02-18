@@ -1,35 +1,37 @@
 package br.com.antoniolima.simplevotingapi.service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import br.com.antoniolima.simplevotingapi.domain.Proposal;
+import br.com.antoniolima.simplevotingapi.exception.CustomApiException;
 import br.com.antoniolima.simplevotingapi.repository.ProposalRepository;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 @Service
 @Slf4j
-@NoArgsConstructor
 public class ProposalService {
 
-    @Autowired
-    private ProposalRepository proposalRep;
+    private final ProposalRepository proposalRep;
 
-    public Proposal findProposalById(final String id) throws ResponseStatusException {
+    public ProposalService(final ProposalRepository proposalRep) {
+        this.proposalRep = proposalRep;
+    }
+
+    public Proposal findProposalById(final String id) throws CustomApiException {
 
         Optional<Proposal> proposal = proposalRep.findById(id);
 
         if (!proposal.isPresent()) {
             log.error("Proposal id not found: {}", id);
 
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Proposal id not found.");
+            throw new CustomApiException(
+                HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase(),
+                "Proposal id not found."
+            );
         }
 
         return proposal.get();

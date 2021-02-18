@@ -22,8 +22,8 @@ paths:
               $ref: '#/components/schemas/proposalsRequest'
         required: true
       responses:
-        '200':
-          description: Success
+        '201':
+          description: Created
           content:
             application/json:
               schema:
@@ -48,8 +48,8 @@ paths:
               $ref: '#/components/schemas/sessionsRequest'
         required: true
       responses:
-        '200':
-          description: Success
+        '201':
+          description: Created
   /proposals/{id}/votes:
     post:
       description: 'Register a new vote in a proposal'
@@ -70,8 +70,8 @@ paths:
               $ref: '#/components/schemas/votesRequest'
         required: true
       responses:
-        '200':
-          description: Success
+        '201':
+          description: Created
   /proposals/{id}/results:
     get:
       description: 'Obtain the results of a voting session'

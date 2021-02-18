@@ -3,6 +3,10 @@ server:
   servlet:
     context-path: /api/v@project.version@
 
+spring:
+  data:
+    mongodb.uri: mongodb://localhost:27017/voting-api
+
 logging:
   config: classpath:log4j2-spring.xml
   level:
