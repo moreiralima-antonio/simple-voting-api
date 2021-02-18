@@ -3,7 +3,7 @@ version: "2.4"
 services:
   voting-api:
     build: .
-    image: voting-api:0.2.0
+    image: voting-api:0.3.0
     container_name: voting-api
     environment:
       MONGODB_URI: mongodb://mongo:27017/voting-api

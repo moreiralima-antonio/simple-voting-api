@@ -12,7 +12,7 @@ The core application features are:
 - Logging with SLF4J (Log4j2)
 - Testing with Postman (postman/SimpleVotingAPI.postman_collection.json)
 
-Current version is v0.2.0 and the API is exposed on: http://localhost:8080/api/v0.2.0.
+Current version is v0.3.0 and the API is exposed on: http://localhost:8080/api/v0.3.0.
 
 ## Features
 
@@ -51,5 +51,5 @@ Open Postman GUI and import **SimpleVotingAPI.postman_collection.json** collecti
 ### Command line
 
 ```bash
-curl -X POST "http://localhost:8080/api/v0.2.0/proposals" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"description\":\"Example\"}"
+curl -X POST "http://localhost:8080/api/v0.3.0/proposals" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"description\":\"Example\"}"
 ```
